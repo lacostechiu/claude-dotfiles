@@ -1,0 +1,11 @@
+# 敏感資料 - 永遠不進 git
+credentials/*.json
+credentials/*.key
+*.pem
+.env
+.env.*
+
+# 機器專屬 / 臨時
+*.log
+.DS_Store
+Thumbs.db
