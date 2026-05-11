@@ -34,16 +34,6 @@
     ],
     "env": {}
   },
-  "filesystem": {
-    "type": "stdio",
-    "command": "npx",
-    "args": [
-      "-y",
-      "@modelcontextprotocol/server-filesystem",
-      "${USERPROFILE}"
-    ],
-    "env": {}
-  },
   "analytics-mcp": {
     "type": "stdio",
     "command": "${USERPROFILE}\\.local\\bin\\analytics-mcp.exe",
@@ -61,5 +51,16 @@
     "env": {
       "GSC_OAUTH_CLIENT_SECRETS_FILE": "${USERPROFILE}\\.claude\\mcp-credentials\\oauth-client.json"
     }
+  },
+  "filesystem": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@modelcontextprotocol/server-filesystem",
+      "${USERPROFILE}",
+      "${DEV_ROOT}"
+    ],
+    "env": {}
   }
 }

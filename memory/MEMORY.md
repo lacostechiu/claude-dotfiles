@@ -1,8 +1,4 @@
-- [Obsidian vault location](obsidian_vault.md) — 使用者的 Obsidian 筆記路徑與存放慣例
-- [MCP 設定偏好](mcp_scope_preference.md) — 新 MCP 一律用 `--scope user`
-- [語言偏好](language.md) — 使用者使用繁體中文溝通
 - [GCP / Google MCP 憑證](gcp_mcp_credentials.md) — GCP 專案 seo-mcp-report、OAuth client 與 ADC 路徑、Testing 模式 7 天 token 限制
 - [Google MCP 套件](google_mcp_servers.md) — GA / GSC MCP 的套件名、執行檔路徑、升級指令
-- [本機開發專案路徑](dev_path.md) — 開發專案一律放 D:\Dev,不要放 Google Drive(會當機)
 - [claude-dotfiles 同步 repo](claude_dotfiles.md) — 跨機器同步 skills/memory/settings/MCP 的 GitHub 私有 repo
 - [dotfiles 同步工作流程](dotfiles_workflow.md) — 桌機推、筆電拉的單向同步;筆電 memory 漂移用人工口頭交辦

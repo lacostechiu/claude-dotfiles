@@ -10,10 +10,15 @@ $encodedHome = ($env:USERPROFILE -replace '[:\\/]','-')
 $projectsDir = Join-Path $claudeDir "projects\$encodedHome"
 $memoryDir   = Join-Path $projectsDir 'memory'
 
+# 偵測 dev 資料夾(桌機 D:\Dev,筆電 C:\Dev,都沒有就略過)
+$devRoot = $null
+foreach ($p in @('D:\Dev','C:\Dev')) { if (Test-Path $p) { $devRoot = $p; break } }
+
 Write-Host '== Claude dotfiles bootstrap ==' -ForegroundColor Cyan
 Write-Host "USERPROFILE : $env:USERPROFILE"
 Write-Host "Encoded home: $encodedHome"
 Write-Host "Memory dir  : $memoryDir"
+Write-Host "Dev root    : $(if ($devRoot) { $devRoot } else { '(沒找到 D:\Dev 或 C:\Dev,filesystem MCP 會略過該 arg)' })"
 Write-Host ''
 
 # 1. 確認 claude CLI
@@ -48,7 +53,15 @@ $settingsDst = Join-Path $claudeDir 'settings.json'
 Copy-Item $settingsSrc $settingsDst -Force
 Write-Host "[OK] settings.json -> $settingsDst" -ForegroundColor Green
 
-# 6. 註冊 MCP servers
+# 6. 全域 CLAUDE.md(每次對話都載入的通用偏好)
+$claudeMdSrc = Join-Path $repoRoot 'CLAUDE.md'
+$claudeMdDst = Join-Path $claudeDir 'CLAUDE.md'
+if (Test-Path $claudeMdSrc) {
+    Copy-Item $claudeMdSrc $claudeMdDst -Force
+    Write-Host "[OK] CLAUDE.md -> $claudeMdDst" -ForegroundColor Green
+}
+
+# 7. 註冊 MCP servers
 $mcpSrc = Join-Path $repoRoot 'mcp\mcp-servers.json'
 $raw = Get-Content $mcpSrc -Raw
 # 把 ${USERPROFILE} 換回本機路徑,要先 JSON-encode(\ -> \\),才能進 JSON 字串裡
@@ -60,7 +73,16 @@ Write-Host '-- 註冊 MCP servers --'
 foreach ($name in $mcp.Keys) {
     $cfg = $mcp[$name]
     $cmd = $cfg.command
-    $argv = @($cfg.args)
+    # 處理 ${DEV_ROOT}:有偵測到 dev 資料夾就替換,沒有就把這個 arg 過濾掉
+    $argv = @()
+    foreach ($a in $cfg.args) {
+        if ($a -eq '${DEV_ROOT}') {
+            if ($devRoot) { $argv += $devRoot }
+            # 沒有 devRoot 就略過,不放進 argv
+        } else {
+            $argv += $a
+        }
+    }
     $envArgs = @()
     if ($cfg.env) {
         foreach ($k in $cfg.env.Keys) { $envArgs += @('-e', "$k=$($cfg.env[$k])") }

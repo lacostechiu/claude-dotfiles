@@ -37,7 +37,16 @@ $settingsSrc = Join-Path $claudeDir 'settings.json'
 Copy-Item $settingsSrc (Join-Path $repoRoot 'settings\settings.json') -Force
 Write-Host '[OK] settings.json' -ForegroundColor Green
 
-# 4. 從 ~/.claude.json 抽出 mcpServers,排除 desktop-only,把 USERPROFILE 換成佔位符
+# 4. 全域 CLAUDE.md
+$claudeMdSrc = Join-Path $claudeDir 'CLAUDE.md'
+if (Test-Path $claudeMdSrc) {
+    Copy-Item $claudeMdSrc (Join-Path $repoRoot 'CLAUDE.md') -Force
+    Write-Host '[OK] CLAUDE.md' -ForegroundColor Green
+} else {
+    Write-Host '[!] ~/.claude/CLAUDE.md 不存在,略過' -ForegroundColor Yellow
+}
+
+# 5. 從 ~/.claude.json 抽出 mcpServers,排除 desktop-only,把 USERPROFILE 與 DEV_ROOT 換成佔位符
 $rootJson = Get-Content (Join-Path $env:USERPROFILE '.claude.json') -Raw | ConvertFrom-Json -AsHashtable
 $filtered = [ordered]@{}
 $skipped = @()
@@ -51,6 +60,13 @@ $upBack = ($env:USERPROFILE -replace '\\','\\')     # C:\\Users\\W11 (JSON 編�
 $upFwd  = ($env:USERPROFILE -replace '\\','/')      # C:/Users/W11
 $mcpJson = $mcpJson.Replace($upBack, '${USERPROFILE}')
 $mcpJson = $mcpJson.Replace($upFwd,  '${USERPROFILE}')
+# DEV_ROOT:把 D:\Dev 或 C:\Dev(視當前機器有哪個)替換為佔位符
+foreach ($dev in 'D:\Dev','C:\Dev') {
+    $devBack = $dev -replace '\\','\\'
+    $devFwd  = $dev -replace '\\','/'
+    $mcpJson = $mcpJson.Replace($devBack, '${DEV_ROOT}')
+    $mcpJson = $mcpJson.Replace($devFwd,  '${DEV_ROOT}')
+}
 [System.IO.File]::WriteAllText(
     (Join-Path $repoRoot 'mcp\mcp-servers.json'),
     $mcpJson,
