@@ -12,7 +12,7 @@ originSessionId: 8a6ed495-2dbb-462b-8d7e-efc4754c6c9d
 **已退役**(2026-04-30):
 - `astro-single`(GitHub: `lacostechiu/astro-demo`)已不再使用,網站改用 Jhost 平台重做。本機已刪除(2026-05-08);原本內含的 5 個網頁文案 md 已搬到 `D:\GoogleDrive\Execution\jhost-copy`,要上 Jhost 平台時取用。
 
-**Claude Code session 路徑**:換 cwd 後 `/resume` 看不到舊對話,因為 session 存在 `~\.claude\projects\<encoded-cwd>\`(編碼規則:去 `:`、`\`/`/` → `-`)。搬路徑時要把舊 encoded 資料夾的 `*.jsonl`、`memory\` 與 attachment 子資料夾一起複製到新 encoded 資料夾。
+**Claude Code session 路徑**:換 cwd 後 `/resume` 看不到舊對話,因為 session 存在 `~\.claude\projects\<encoded-cwd>\`(編碼規則:`:`、`\`、`/` **全部換成 `-`**,所以 `C:\Users\W11` → `C--Users-W11`、`D:\Dev\Astro` → `D--Dev-Astro`)。搬路徑時要把舊 encoded 資料夾的 `*.jsonl`、`memory\` 與 attachment 子資料夾一起複製到新 encoded 資料夾。
 
 **Why**:2026-04-30 實測,Astro 專案 4 萬檔放在 Drive 同步路徑下,Drive 監控 + npm/HMR 雙重 I/O 把 SSD 打到塞車,32 GB RAM + Core Ultra 7 也會卡住當機。Drive 設計就不適合同步幾萬個小檔。
 

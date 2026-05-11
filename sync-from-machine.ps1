@@ -4,9 +4,13 @@
 
 $ErrorActionPreference = 'Stop'
 
+# 不要同步的 MCP server(只裝在桌機,筆電不裝)
+# 想新增 desktop-only MCP 加在這
+$ExcludeMcp = @('obsidian','notebooklm-mcp')
+
 $repoRoot    = $PSScriptRoot
 $claudeDir   = Join-Path $env:USERPROFILE '.claude'
-$encodedHome = ($env:USERPROFILE -replace ':','' -replace '[\\/]','-')
+$encodedHome = ($env:USERPROFILE -replace '[:\\/]','-')
 $memorySrc   = Join-Path $claudeDir "projects\$encodedHome\memory"
 
 Write-Host '== 從 ~/.claude/ 同步進 repo ==' -ForegroundColor Cyan
@@ -33,17 +37,26 @@ $settingsSrc = Join-Path $claudeDir 'settings.json'
 Copy-Item $settingsSrc (Join-Path $repoRoot 'settings\settings.json') -Force
 Write-Host '[OK] settings.json' -ForegroundColor Green
 
-# 4. 從 ~/.claude.json 抽出 mcpServers,把 USERPROFILE 換成佔位符
+# 4. 從 ~/.claude.json 抽出 mcpServers,排除 desktop-only,把 USERPROFILE 換成佔位符
 $rootJson = Get-Content (Join-Path $env:USERPROFILE '.claude.json') -Raw | ConvertFrom-Json -AsHashtable
-$mcpJson = $rootJson.mcpServers | ConvertTo-Json -Depth 8
-$mcpJson = $mcpJson -replace [regex]::Escape(($env:USERPROFILE -replace '\\','\\\\')), '${USERPROFILE}'
-$mcpJson = $mcpJson -replace [regex]::Escape(($env:USERPROFILE -replace '\\','/')), '${USERPROFILE}'
+$filtered = [ordered]@{}
+$skipped = @()
+foreach ($name in $rootJson.mcpServers.Keys) {
+    if ($ExcludeMcp -contains $name) { $skipped += $name; continue }
+    $filtered[$name] = $rootJson.mcpServers[$name]
+}
+$mcpJson = $filtered | ConvertTo-Json -Depth 8
+# 用 string .Replace() 避開 -replace 把 ${USERPROFILE} 當成 regex backreference
+$upBack = ($env:USERPROFILE -replace '\\','\\')     # C:\\Users\\W11 (JSON 編碼形式,每 \ 變成 \\)
+$upFwd  = ($env:USERPROFILE -replace '\\','/')      # C:/Users/W11
+$mcpJson = $mcpJson.Replace($upBack, '${USERPROFILE}')
+$mcpJson = $mcpJson.Replace($upFwd,  '${USERPROFILE}')
 [System.IO.File]::WriteAllText(
     (Join-Path $repoRoot 'mcp\mcp-servers.json'),
     $mcpJson,
     [System.Text.UTF8Encoding]::new($false))
-Write-Host '[OK] mcp-servers.json(已替換 USERPROFILE)' -ForegroundColor Green
+Write-Host "[OK] mcp-servers.json(納入 $($filtered.Count) 個,排除:$($skipped -join ', '))" -ForegroundColor Green
 
 Write-Host ''
 Write-Host '完成。檢查 diff 後 git commit + push。' -ForegroundColor Cyan
-Write-Host '   git -C "{0}" status' -f $repoRoot
+Write-Host ("   git -C `"{0}`" status" -f $repoRoot)

@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot   = $PSScriptRoot
 $claudeDir  = Join-Path $env:USERPROFILE '.claude'
-$encodedHome = ($env:USERPROFILE -replace ':','' -replace '[\\/]','-')
+$encodedHome = ($env:USERPROFILE -replace '[:\\/]','-')
 $projectsDir = Join-Path $claudeDir "projects\$encodedHome"
 $memoryDir   = Join-Path $projectsDir 'memory'
 
@@ -51,7 +51,9 @@ Write-Host "[OK] settings.json -> $settingsDst" -ForegroundColor Green
 # 6. 註冊 MCP servers
 $mcpSrc = Join-Path $repoRoot 'mcp\mcp-servers.json'
 $raw = Get-Content $mcpSrc -Raw
-$raw = $raw -replace '\$\{USERPROFILE\}', ($env:USERPROFILE -replace '\\','\\\\')
+# 把 ${USERPROFILE} 換回本機路徑,要先 JSON-encode(\ -> \\),才能進 JSON 字串裡
+$upJson = ($env:USERPROFILE -replace '\\','\\')   # C:\Users\W11 -> C:\\Users\\W11
+$raw = $raw.Replace('${USERPROFILE}', $upJson)
 $mcp = $raw | ConvertFrom-Json -AsHashtable
 
 Write-Host '-- 註冊 MCP servers --'

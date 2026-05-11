@@ -1,18 +1,4 @@
 {
-  "obsidian": {
-    "type": "stdio",
-    "command": "${USERPROFILE}\\AppData\\Roaming\\npm\\mcpvault.cmd",
-    "args": [
-      "D:\\GoogleDrive\\Execution\\Valut-Wordpress"
-    ],
-    "env": {}
-  },
-  "notebooklm-mcp": {
-    "type": "stdio",
-    "command": "notebooklm-mcp",
-    "args": [],
-    "env": {}
-  },
   "context7": {
     "type": "stdio",
     "command": "npx",

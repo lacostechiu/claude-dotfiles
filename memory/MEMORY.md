@@ -4,3 +4,4 @@
 - [GCP / Google MCP 憑證](gcp_mcp_credentials.md) — GCP 專案 seo-mcp-report、OAuth client 與 ADC 路徑、Testing 模式 7 天 token 限制
 - [Google MCP 套件](google_mcp_servers.md) — GA / GSC MCP 的套件名、執行檔路徑、升級指令
 - [本機開發專案路徑](dev_path.md) — 開發專案一律放 D:\Dev,不要放 Google Drive(會當機)
+- [claude-dotfiles 同步 repo](claude_dotfiles.md) — 跨機器同步 skills/memory/settings/MCP 的 GitHub 私有 repo
