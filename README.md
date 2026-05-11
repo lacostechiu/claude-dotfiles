@@ -89,6 +89,8 @@ claude mcp list
 
 ## 平常維護
 
+**單向同步政策**:桌機是 source of truth,筆電只 pull 不 push。
+
 ### 桌機改了東西 → 推到 repo
 
 ```powershell
@@ -99,13 +101,15 @@ git commit -m "sync: <說明改了什麼>"
 git push
 ```
 
-### 筆電拉最新
+### 筆電拉最新(只做這個)
 
 ```powershell
 cd D:\Dev\claude-dotfiles
 git pull
-.\bootstrap.ps1   # 重跑會覆蓋本機,確認過再做
+.\bootstrap.ps1   # 把 repo 鏡射到 ~/.claude/(用 robocopy /MIR)
 ```
+
+> ⚠️ **筆電別跑 sync-from-machine.ps1**。筆電對話時 Claude 寫的 memory 是「臨時的」,下次 bootstrap 會被桌機版覆蓋。如果在筆電上學到值得永久保留的事實,口頭交辦在桌機補上就好。
 
 ---
 
