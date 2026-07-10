@@ -1,6 +1,6 @@
 ---
 name: astro-client-page
-description: 為「已建立的客戶 Astro 網站」新增單個頁面（about / services / contact / pricing / FAQ / 案例集 / 團隊 / 隱私政策 等）。觸發時機：客戶網站已 provision 完成，現在要在 src/pages/ 加新的 .astro 檔，或要決定某頁的 title / description / 內文。不適用於建立整個新客戶專案（用 astro-client-site）；不適用於修改 BaseLayout / 模板共通結構（也用 astro-client-site）；不適用於寫部落格文章（用編輯器 UI）。
+description: 為「已建立的客戶 Astro 網站」新增單個頁面（about / services / contact / pricing / FAQ / 案例集 / 團隊 / 隱私政策 等），或依客戶的「頁面申請」（intake）修改既有頁面的文字與圖片。觸發時機：客戶網站已 provision 完成，要在 src/pages/ 加新的 .astro 檔、要改既有頁的字/圖、或要決定某頁的 title / description / 內文。不適用於建立整個新客戶專案（用 astro-client-site）；不適用於修改 BaseLayout / 模板共通結構（也用 astro-client-site）；不適用於寫部落格文章（用編輯器 UI）。
 ---
 
 # 為客戶 Astro 網站新增單一頁面
@@ -22,6 +22,26 @@ description: 為「已建立的客戶 Astro 網站」新增單個頁面（about 
 | 客戶自己 review | 需仔細逐字校對 | 只需確認排版 |
 
 **方案 A 只在客戶還沒寫好任何文案、想看雛形長相時用**。正式上線一律用方案 B。
+
+---
+
+## 開工前兩件事（每次必查）
+
+### 1. 素材可能來自「頁面申請」（intake）——先看有沒有
+
+客戶可在編輯器「頁面申請」分頁提交需求（文字 + 照片），用 `bash scripts/fetch-intake.sh <id> [reqId]`
+拉到 `_客戶素材/<id>/pages/<page>/`，產出 `需求-intake.md` + 圖片原檔。**md 開頭會標類型**：
+
+- **`新頁面`** → 走本 skill 正常流程（需求-intake.md 就是客戶文案稿，仍守「一字不改」）
+- **`修改既有頁面`** → md 裡有「要改的檔案：src/pages/xxx.astro」——**改該檔，不要新建**；
+  只動客戶指名的文字/圖片，其餘排版與內容不碰；改完照常 build 驗證
+- 頁面上線後提醒 admin 到後台把該筆申請標「完成」（客戶在編輯器看得到狀態）
+
+### 2. 頁數上限 8 頁（商業承諾，手動加頁也要守）
+
+網站方案含 **8 頁上限**（intake 送出時 server 會擋，但你手動加頁會繞過檢查）。
+加新頁前先數 `src/pages/` 的靜態頁數（動態 route、404 不算），已達 8 頁就先跟使用者確認再動工。
+**修改既有頁不佔頁數**。
 
 ---
 
@@ -56,7 +76,7 @@ body: |
 【嚴格要求】
 1. 文字一字不改，照我提供的原文使用（保留標點、換行、術語）
 2. Markdown 結構自然映射到 HTML（H1 / H2 / H3 / 段落 / 列表 / 引言 / 連結）
-3. 用 <BaseLayout title="..." description="..."> 包起來，title 與 description 用我給的「原文」
+3. 用 `<BaseLayout title={pageTitle} description={pageDesc}>` 包起來，並讓 admin 後台能覆寫 SEO：frontmatter `import { getEntry }` + `const siteEntry = await getEntry('site','site')`，再 `const seo = siteEntry?.data?.pageSeo?.['<<slug>>'] ?? {}`、`const pageTitle = seo.title || '<我給的原文 title>'`、`const pageDesc = seo.description || '<我給的原文 description>'`（**寫死的原文當 fallback，不是唯一來源** —— 這樣 admin 後台「頁面 SEO」才能覆寫這頁，不用改 code）
 4. 排版視覺風格參考 src/pages/index.astro：間距、字體、區塊分隔線、CTA 按鈕等
 5. 響應式（手機 / 平板 / 桌機都要好看）
 6. 圖片用 <img loading="lazy" />（除非是該頁的 hero 圖才用 fetchpriority="high" loading="eager"）
@@ -73,7 +93,7 @@ body:
 ```
 
 ### Step 3：跑完後檢查
-- `npm run dev` 開本機預覽
+- `pnpm dev` 開本機預覽（客戶站一律 pnpm，不是 npm）
 - 對比客戶原稿，**確認沒有亂改字**
 - 若 Claude 改了字（常見：把「我們」改「本診所」、加裝飾性形容詞），跟它說「請使用我提供的原文，不要改寫，重做這個頁面」
 
@@ -141,10 +161,10 @@ body: |
   
   ## 加 LINE
   <LINE QR Code 圖片或 LINE ID>
-  
-  ## 表單
-  <選用：Web3Forms 嵌入 or 引導去 LINE>
 ```
+**⚠️ 不做聯絡表單**（平台原則）：表單靠 SMTP 寄信，寄失敗＝客戶流失生意且責任無法釐清。
+聯絡管道一律引導 **LINE**（有 Jbot 的客戶就是 AI 客服入口，對話紀錄落地可查）＋電話＋email 文字。
+如果客戶堅持要表單，回報給平台管理員人工討論，不要自行嵌 Web3Forms / Formspree。
 
 ### 4. FAQ
 ```yaml
@@ -249,7 +269,7 @@ body: |
 ### title（瀏覽器頁籤標題）
 - 8-30 字
 - 結構：`<頁面主題> — <品牌名>` 或 `<頁面主題> | <品牌名>`
-- BaseLayout 會自動加品牌名 suffix（看 BaseLayout.astro 的 fullTitle 邏輯），所以你只需給「頁面主題」部分，例如 `關於 仁愛牙醫`
+- BaseLayout 會自動加品牌名 suffix（看 BaseLayout.astro 的 fullTitle 邏輯），所以你只需給「頁面主題」部分，例如 `關於溯源`
 - 必含主關鍵字
 
 ### description（meta description，搜尋結果預覽）
@@ -257,7 +277,7 @@ body: |
 - 兩段式：**讀者痛點 + 文章/服務的解法**
 - 含主關鍵字（從 title 擷取）
 - ✗ 禁止以「本文」「本頁」「歡迎來到」「這是」開頭
-- ✓ 範例：「想做矯正卻擔心要拔牙？仁愛牙醫 18 年矯正經驗，以數位 3D 掃描精準評估每位患者，多數案例不需拔牙。免費諮詢預約。」
+- ✓ 範例：「30 年老屋想翻新卻怕預算爆炸？溯源室內設計 15 年老屋經驗，先做結構與管線總體檢再逐項透明報價，不做總價包。免費諮詢預約。」
 
 ---
 
@@ -266,7 +286,7 @@ body: |
 | 頁面 | title / description 來源 | 誰維護 |
 |------|------------------------|--------|
 | `/`（首頁） | `src/content/pages/home.yaml` 的 `title` 與 `description` | 平台管理員 |
-| `/about`、`/services` 等自訂頁 | 該 `.astro` 檔的 `<BaseLayout title="..." description="...">` props | 平台管理員（用 Claude 改 .astro） |
+| `/about`、`/services` 等自訂頁 | 該 `.astro` 讀 `pageSeo.<slug>` 覆寫，否則用 .astro 內的 fallback | 平台管理員設 fallback；**admin 後台「頁面 SEO」可即時覆寫**（不用改 code） |
 | `/blog/<slug>/`（文章） | 文章 .md frontmatter 的 `title` 與 `description` | 客戶（透過編輯器 UI） |
 | `/blog/`（文章列表） | 該 `.astro` 檔 hardcode | 平台管理員 |
 
@@ -276,15 +296,29 @@ body: |
 
 加頁面常會用到圖片。**絕對不要在 `home.yaml` / `<img src>` 寫死 `https://images.unsplash.com/...` 這種外站連結**——會拖累 PageSpeed 分數 1-2 秒（DNS 解析 + TLS 握手 + 不可控）。
 
+### 標準管線：process-client-images.mjs（本機加頁時用這個，不要手動壓圖）
+
+原圖丟 `_客戶素材/<id>/pages/<page>/`（intake 拉下來的就在這），然後：
+
+```bash
+node D:/Dev/Astro/scripts/process-client-images.mjs <client-id> <page>
+```
+
+自動壓縮 + 轉 WebP，輸出 `clients/<id>/public/images/<page>-<name>.webp`。
+**role 對應寬度（與《客戶頁面建置-SOP》一致）**：
+
+| role | 寬度 | 用途 |
+|------|-----|------|
+| `hero` | **1920px** | 頁面最上方大圖（首屏背景）|
+| `portfolio` | 1200px | 案例 / 作品 / 大張內容圖 |
+| `inline` | 800px | 內文插圖（預設）|
+| `team` | 600px | 人物照 |
+
 ### 規則
 
 1. **所有圖片放在客戶 `public/images/` 目錄**，URL 用 `/images/<filename>`
 2. **格式優先用 WebP**（檔案小 25-35%，所有現代瀏覽器都支援）
-3. **大小依用途**：
-   - hero / 全 viewport 背景：1200px 寬
-   - 大卡片 / featured：900px 寬
-   - 小卡片 / thumbnail：600px 寬
-   - 文章內圖：800-1200px
+3. **大小依上表 role 決定**（不確定就 inline 800px）
 4. **加優先級提示**：
    - 首屏 hero 圖：`<img fetchpriority="high" loading="eager" ...>`
    - 其他全部：`<img loading="lazy" ...>`
@@ -311,7 +345,7 @@ node /var/www/api-server/scripts/localize-unsplash.mjs <client-id>
 
 腳本會：
 1. 掃 `home.yaml` 與 `posts/*.md` 找所有 `https://images.unsplash.com/...` URL
-2. 依 yaml 欄位 context 推估該下載多大（hero=1200, cover=900, img=600）
+2. 依 yaml 欄位 context 推估該下載多大（hero=1200, cover=900, img=600——注意這是 Unsplash 補救工具自己的尺寸；客戶真實素材走 process-client-images.mjs，hero 是 1920）
 3. 用 Unsplash 的 `&fm=webp` 直接拿 WebP
 4. 存到 `public/images/u-<photo-id>-<width>.webp`
 5. 改 yaml / md 內 URL 為 `/images/...`
@@ -331,22 +365,21 @@ node /var/www/api-server/scripts/localize-unsplash.mjs <client-id>
 加完頁面、本機 dev 確認 OK 後：
 
 ```bash
-# 1. Build 本機驗證
-npm run build
+# 1. Build 本機驗證（客戶站用 pnpm，不是 npm）
+pnpm build
 
-# 2. 推 GitHub
+# 2. 推 GitHub（只是備份——push 本身不會觸發部署）
 git add -A
 git commit -m "feat: add about page"
 git push
-
-# 3. CF Pages 自動 deploy（30-60 秒）
-
-# 4. 同步回 VPS（讓編輯器看到原始檔）
-ssh jhost "cd /var/www/clients/<id>/astro && git pull"
-# 若沒設 git remote：scp 改動的檔案
 ```
 
-**注意**：客戶在編輯器寫文章時，編輯器讀的是 VPS 上的原始檔。Step 4 不做的話，admin 後台「編輯客戶」看不到 nav 的變動。
+3. **觸發部署**：開 `https://editor.jhost.tw/<id>/` → admin email 登入 → 按 **「發布到網站」**。
+   發布流程（publishQueue）自動 `pull origin/main`（把你剛 push 的新頁面拉到 VPS）→ `pnpm build` → `wrangler pages deploy`，30–60 秒完成、發布頁有即時 log。
+
+> **不必手動 `ssh jhost; git pull`**——發布會自動 pull（2026-05-07 起）。
+> **CF 不會自動 deploy**——平台是 VPS build + wrangler 直傳，CF 沒連 Git；push 到 GitHub 本身不部署。
+> 按一次「發布」也會把 VPS 上的變動 commit + push 回 GitHub，編輯器/後台隨即同步。詳見 `客戶頁面建置-SOP.md` Step 6。
 
 ---
 
@@ -361,7 +394,7 @@ ssh jhost "cd /var/www/clients/<id>/astro && git pull"
 - [ ] 圖片有 `loading="lazy"`（首屏 hero 例外，用 `fetchpriority="high"`）
 - [ ] 內部連結都通（點開能跳到正確位置）
 - [ ] CTA 按鈕對比 ≥ 4.5:1
-- [ ] 加完後 `npm run build` 不能報錯（schema validation 等）
+- [ ] 加完後 `pnpm build` 不能報錯（schema validation 等）
 
 ---
 
@@ -372,8 +405,8 @@ ssh jhost "cd /var/www/clients/<id>/astro && git pull"
 | Claude 改了客戶的字 | 沒下「一字不改」硬指令 | 重跑：「請使用我提供的原文，禁止改寫」 |
 | 跟首頁風格不一致 | 沒讓 Claude 先讀 index.astro | prompt 第一行務必寫「請先讀 BaseLayout 與 index.astro」 |
 | build 失敗 zod schema error | site.yaml 多了不認識的欄位 | 看 `src/content/config.ts`，schema 用 `.passthrough()` 允許額外欄位 |
-| 線上沒看到變動 | 沒 push 或 CF 還在 build | git push 後等 30-60 秒 |
-| 編輯器看到的客戶資訊跟網站不一致 | VPS 沒 sync | 跑 `ssh jhost "cd /var/www/clients/<id>/astro && git pull"` |
+| 線上沒看到變動 | push 了但沒按發布（push 不會部署、CF 不 build） | 開編輯器按「發布到網站」（自動 pull + build + deploy） |
+| 編輯器 / 網站跟你 push 的不一致 | VPS 還沒 pull 到你的 push | 按一次「發布」即自動 `pull origin/main` 同步；不必手動 SSH |
 | nav 漢堡選單行為異常 | 模板共通問題 | 屬於 `astro-client-site` skill 範疇，不在這 |
 
 ---
@@ -382,7 +415,7 @@ ssh jhost "cd /var/www/clients/<id>/astro && git pull"
 
 - **astro-client-site**：建立整個客戶專案、修改 BaseLayout / 模板、provisioning、CF Pages 部署設定
 - **astro-client-page**（本 skill）：在已存在的客戶專案內**新增單一頁面**
-- **modern-web-design**：純視覺探索、設計風格 R&D（不是真實客戶頁面）
+- **modern-web-design**：定義「新的」視覺風格 / 美學方向（開新模板、客製首頁的設計）。本 skill 是「在**既有**風格內加內容頁」，所以**沿用**站上既有風格（讀 `index.astro` + 用 token），不在這裡重新定調
 - **jclassroom-blog**：寫 WordPress 部落格文章
 
 如果客戶的請求跨範圍（例如「加 about 頁順便改 BaseLayout 加 footer logo」），先做本 skill 的部分，BaseLayout 修改觸發 `astro-client-site`。

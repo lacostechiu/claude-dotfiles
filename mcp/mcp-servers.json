@@ -62,5 +62,18 @@
       "${DEV_ROOT}"
     ],
     "env": {}
+  },
+  "novamira-trustedbrand-org": {
+    "type": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@automattic/mcp-wordpress-remote@latest"
+    ],
+    "env": {
+      "WP_API_URL": "https://trustedbrand.org.tw/wp-json/mcp/novamira",
+      "WP_API_USERNAME": "lacoste",
+      "WP_API_PASSWORD": "ANktCbDvPki8lav8FrM7ktPF"
+    }
   }
 }

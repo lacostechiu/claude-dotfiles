@@ -1,4 +1,9 @@
 {
+  "cleanupPeriodDays": 365,
+  "permissions": {
+    "defaultMode": "auto"
+  },
+  "model": "claude-fable-5[1m]",
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
     "warp@claude-code-warp": true
@@ -11,8 +16,5 @@
       }
     }
   },
-  "skipAutoPermissionPrompt": true,
-  "permissions": {
-    "defaultMode": "auto"
-  }
+  "skipAutoPermissionPrompt": true
 }

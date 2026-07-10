@@ -1,6 +1,6 @@
 ---
 name: modern-web-design
-description: 使用 Tailwind CSS 製作有設計質感的現代網頁。任何時候使用者要求製作網站、landing page、個人網站、作品集、SaaS 首頁、商業網站、元件，或是要求「美化」、「改版」、「重做」既有頁面時，立即套用此 skill。輸出必須具備明確美學主張，避免通用 AI 生成風格。
+description: 製作有設計質感的現代網頁——現代、簡潔、有創意與藝術感，排版不死板。任何時候使用者要求製作網站、landing page、個人網站、作品集、SaaS 首頁、商業網站、元件，或是要求「美化」、「改版」、「重做」既有頁面時，立即套用此 skill。輸出必須具備明確美學主張，避免通用 AI 生成風格。本 skill 管美學決策，技術中立：在 jhost 客戶站/模板內用 tokens.css + scoped CSS 實作（見「jhost 情境」節），獨立 HTML 專案才用 Tailwind。
 ---
 
 # 現代網頁設計 Skill
@@ -13,6 +13,31 @@ description: 使用 Tailwind CSS 製作有設計質感的現代網頁。任何�
 2. **拒絕 AI slop 清單**（見下方）
 
 設計網站沒有「中性、安全」的選項。試圖讓所有人都喜歡的設計，沒有人會記住。
+
+---
+
+## jhost 情境：實作層用 tokens.css，不用 Tailwind（**先確認場景**）
+
+本 skill 的**美學決策**（定調、反 slop、排版節奏、動效）適用所有專案；**實作語法看場景**：
+
+| 場景 | 實作方式 |
+|------|---------|
+| **jhost 客戶站 / 模板**（`clients/<id>/`、`api-server/templates/`） | **tokens.css CSS 變數 + scoped `<style>`**，禁用 Tailwind（規範見 `astro-client-site` skill §六/§九之五） |
+| 獨立 HTML / 平台外專案 | 可用 Tailwind（本文件的 Tailwind 段落適用） |
+
+jhost 場景的字級/間距**對映 token**，不寫 utility class 也不寫死數值：
+
+| 本文件的 Tailwind 寫法 | jhost 寫法 |
+|---|---|
+| `text-6xl` ~ `text-9xl`（hero 大標） | `font-size: var(--text-4xl)`（48→96px fluid）或 `--text-display-*` |
+| `text-4xl`（section 標題） | `var(--text-2xl)` |
+| `py-32`（section 間距） | `padding: var(--space-2xl) var(--content-pad)` |
+| `tracking-tighter` | `letter-spacing: -0.02em`（這類微調直接寫，不是 token 範疇） |
+| 色彩 `bg-[#F5F1E8]` | 定義進該模板 `tokens.css` 的 semantic colors（`--color-bg` 等） |
+
+> token 系統是 fluid scale（`clamp()`，靈感來自 **CoreFramework / utopia.fyi**，完整見
+> `design-tokens-設計系統.md`）——它管「尺寸階梯」，**不管美學**。字體選擇、破格、
+> 不對稱、動效這些美學決策照本 skill 走，只是落地時寫成 token + scoped CSS。
 
 ---
 
@@ -67,6 +92,9 @@ description: 使用 Tailwind CSS 製作有設計質感的現代網頁。任何�
 ### 版面（絕對禁用）
 - ❌ 對稱的三欄 feature cards（所有 AI 網站都這樣）
 - ❌ Hero 區塊：左文字 + 右大圖
+- ❌ **每個 section 都長一樣**：「置中 eyebrow + 置中大標 + 等寬卡片 grid」從頭重複到尾——這是死板排版的頭號特徵
+- ❌ 所有內容都關在同一個等寬 container 裡，從上到下沒有一處變化
+- ❌ 所有圖片同尺寸、同圓角、整齊排列（像素材庫縮圖牆）
 - ❌ Emoji 當 icon（🎯📊🚀🤝💡🌐）
 - ❌ 「500+ 客戶 / 98% 滿意度 / 24/7 支援」式的假數據欄
 - ❌ 圓形頭像 + 姓名 + 職稱的見證卡
@@ -93,9 +121,29 @@ description: 使用 Tailwind CSS 製作有設計質感的現代網頁。任何�
 - 暗色模式優先考慮（不是每次都要白底）
 
 ### 排版
-- 標題字級要夠大（桌機 `text-6xl` ~ `text-9xl` 不要怕）
+- 標題字級要夠大（桌機 `text-6xl` ~ `text-9xl` 不要怕；jhost 用 `var(--text-4xl)` 級）
 - 使用 `tracking-tight` 於大標題、`tracking-wide` 於小標籤
 - 至少一個破格元素：超出 container 的圖、對角排版、重疊文字、巨大數字背景
+
+### 排版節奏：不死板的五個手法（每頁至少用三個）
+
+「簡潔」不等於「每個 section 複製同一個版式」。簡潔是**少元素、大字級、留白有膽量**，
+節奏靠變化撐起來：
+
+1. **section 版式輪替**——連續兩個 section 不用同一種結構。輪替菜單：
+   全寬 hero → 不對稱兩欄（3:7 或 4:8，不是 1:1）→ 窄欄純文字（60ch 置中）→
+   full-bleed 圖 / 色塊 → 交錯列表（圖左文右、下一項反轉）→ 大引言（quote 當一個 section）
+2. **不對稱網格**：欄寬刻意不等（`grid-template-columns: 5fr 7fr`）、卡片跨列跨欄
+   （masonry 感）、元素刻意偏離中軸。對稱只留給刻意要「莊重感」的版型（如 Refined Luxury）
+3. **大小對比要狠**：hero 標題 vs 內文至少 5 倍字級差；一張大圖配多張小圖，
+   不要全部同尺寸；某個數字 / 單字放大到誇張（背景字、跨兩行的 drop cap）
+4. **留白當設計元素**：section 之間敢留 1.5 個螢幕高的空；文字欄寬壓窄（50-65ch）
+   讓兩側大量留白；不是每一寸都要塞內容
+5. **打破容器一次以上**：讓一張圖 / 一條色帶 / 一段超大文字滿版出血（full-bleed），
+   或讓元素壓過 section 邊界重疊到下一區
+
+**自我檢查**：把頁面縮到 25% 看縮圖——如果每個 section 的輪廓長得一樣（同高、同置中、
+同網格），就是死板，回去輪替版式。
 
 ### 動效（至少實作一項）
 - **頁面載入 stagger reveal**：標題字/段落依序淡入（用 `animation-delay`）
@@ -112,7 +160,7 @@ description: 使用 Tailwind CSS 製作有設計質感的現代網頁。任何�
 
 ---
 
-## Tailwind CSS 具體實作指引
+## Tailwind CSS 具體實作指引（**僅獨立 HTML 專案**；jhost 客戶站/模板改用開頭的 token 對映表）
 
 ### 字體載入
 ```html
@@ -262,11 +310,12 @@ description: 使用 Tailwind CSS 製作有設計質感的現代網頁。任何�
 
 生成 HTML 後，問自己：
 
-**美學面（4 題）**
+**美學面（5 題）**
 1. 這個頁面如果去掉文字內容，光看版面能不能認出這是什麼產業/調性？（能 = 有美學主張）
 2. 有沒有一個「記憶點」——讓人截圖分享的瞬間？
 3. 關掉這個網站後 5 秒，使用者會記得什麼具體視覺元素？
 4. 這個設計跟 v0.dev / bolt.new 預設輸出有什麼不同？
+5. 縮到 25% 看縮圖：每個 section 的輪廓是否長得不一樣？（一樣 = 死板，回去輪替版式）
 
 **RWD 面（3 題，每次必查）**
 5. 全頁搜尋 `grid-template-columns`——有沒有出現在 inline style 裡？有的話立刻移出來。
